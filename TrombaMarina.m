@@ -7,9 +7,9 @@ Fs = 44100;
 
 T = 1/Fs;
 
-b = 1;       % Resistance
-k = 1000000;  % spring stiffness
-m = 0.001;        % mass
+b = 0.008;       % Resistance
+k = 10000000;  % spring stiffness
+m = 8;        % mass
 
 % frequency of spring
 f0 = 1/(2*pi) * sqrt(k/m)
@@ -33,16 +33,17 @@ D = 0;
 a = 2/T;
 I = eye(2);
 H = inv(a*I - A);
-
+Ad = H * (a*I + A);
+Bd = H * B;
 
 % Bow model
-freq = 200;
+freq = 440;
 
 N = Fs;
 
 stringLength = floor(Fs/freq);
 l = stringLength/2;
-Pb = 0.1; % bowing point
+Pb = 0.15; % bowing point
 Fb = 0.2;
 Vb = 0.2;
 
@@ -50,7 +51,6 @@ nutLength = floor(stringLength*(1-Pb));
 brigdeLength = floor(stringLength*Pb);
 nutDelay = zeros(1,nutLength);
 brigdeDelay = zeros(1,brigdeLength);
-
 
 Z = 0.55;
 mus = 0.8; % static coeffient of friction
@@ -64,6 +64,7 @@ Vh = 0;
 
 %dVon = 0;
 dVib = 0;
+dVin = 0;
 stick = 0;
 
 output = zeros(N,1);
@@ -77,6 +78,9 @@ for i = 1:N
     
     LPVib = 0.5*(Vib + dVib);
     dVib = LPVib;
+    
+    LPVin = 0.5 * (Vin + dVin);
+    dVin = LPVin;
     
     Vh = Vin + LPVib;
     
@@ -115,7 +119,7 @@ for i = 1:N
                 
                 stick = 0;
                 
-                if(vtemp > Vb) %we do not want a solution v>Vb
+                if(vtemp > Vb) % we do not want a solution v>Vb
                     v = Vb;
                     stick = 1;
                 else
@@ -142,22 +146,22 @@ for i = 1:N
     f = zslope*(v-Vh);
     
     Von = -(LPVib + (f/(2*Z))); % new outgoing velocity to nut
-    Vob = -(Vin +  (f/(2*Z)));  % new outgoing velocity to bridge
+    Vob = -(LPVin +  (f/(2*Z)));  % new outgoing velocity to bridge
     
     % attach mass spring to bow
     u = Vob;
     
     % output of spring
-    massSpringOutput = C * x + D * u;
+    massSpringOutput = x(1); 
     
     % update states
-    x = H * ((a*I + A)*x + B*(u + du));
+    x = Ad*x + Bd*(u + du);
     du = u;
     
     nutDelay = [Von, nutDelay(1:nutLength-1)];
-    brigdeDelay = [Vob, brigdeDelay(1:brigdeLength-1)];
+    brigdeDelay = [Vob + massSpringOutput * 100, brigdeDelay(1:brigdeLength-1)];
     
-    output(i) = Vob;
+    output(i) = Vob * massSpringOutput * 10000  ;
     
     frictionOutput(i) = f;
     vOutput(i) = v;   
