@@ -1,0 +1,9 @@
+Builds/
+JuceLibraryCode/
+TrombaMarina.jucer
+
+# mac fs metadata
+.DS_Store
+.vscode
+
+.m~
