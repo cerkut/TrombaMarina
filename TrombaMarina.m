@@ -7,15 +7,15 @@ Fs = 44100;
 
 T = 1/Fs;
 
-b = 0.008;       % Resistance
-k = 10000000;  % spring stiffness
-m = 8;        % mass
+b = 0.5;       % Resistance
+k = 1000000;  % spring stiffness
+m = 0.1;        % mass
 
 % frequency of spring
 f0 = 1/(2*pi) * sqrt(k/m)
 
 % mass spring states
-x = [0,0]';
+x = [0.01,0]';
 
 % input to mass spring
 u = 0;
@@ -37,15 +37,15 @@ Ad = H * (a*I + A);
 Bd = H * B;
 
 % Bow model
-freq = 440;
+freq = 220;
 
-N = Fs;
+N = 4*Fs;
 
 stringLength = floor(Fs/freq);
 l = stringLength/2;
-Pb = 0.15; % bowing point
-Fb = 0.2;
-Vb = 0.2;
+Pb = 0.1; % bowing point
+Fb = 0.0001;  % force (N)
+Vb = 0.2;  % velocity (m/s)
 
 nutLength = floor(stringLength*(1-Pb));
 brigdeLength = floor(stringLength*Pb);
@@ -72,6 +72,9 @@ frictionOutput = zeros(N,1);
 vOutput = zeros(N,1);
 
 for i = 1:N
+    if Fb < 0.15
+        Fb = Fb + 0.0001;
+    end
     
     Vin = nutDelay(nutLength);
     Vib = brigdeDelay(brigdeLength);
@@ -85,12 +88,10 @@ for i = 1:N
     Vh = Vin + LPVib;
     
     % Bow friction calculations
-    
-    A=zslope;
-    
+        
     B2=-0.2*zslope-0.3*Fb-zslope*Vb-zslope*Vh;
     C2=0.06*Fb+zslope*Vh*Vb+0.2*zslope*Vh+0.3*Vb*Fb+0.1*Fb;
-    delta2=B2*B2-4*A*C2;
+    delta2=B2*B2-4*zslope*C2;
     
     if Vh == Vb % MIDDLE
         
@@ -112,8 +113,8 @@ for i = 1:N
                 v = Vb;
             else
                 
-                v1 = (-B2+sqrt(B2*B2-4*A*C2))/(2*A);
-                v2 = (-B2-sqrt(B2*B2-4*A*C2))/(2*A);
+                v1 = (-B2+sqrt(B2*B2-4*zslope*C2))/(2*zslope);
+                v2 = (-B2-sqrt(B2*B2-4*zslope*C2))/(2*zslope);
                 
                 vtemp = min(v1, v2);  % we choose the minimum solution, because it is NOT the one in the middle
                 
@@ -128,8 +129,8 @@ for i = 1:N
             end
         else % we are in SLIP, so we stay in SLIP.....
             
-            v1 = (-B2+sqrt(B2*B2-4*A*C2))/(2*A);
-            v2 = (-B2-sqrt(B2*B2-4*A*C2))/(2*A);
+            v1 = (-B2+sqrt(B2*B2-4*zslope*C2))/(2*zslope);
+            v2 = (-B2-sqrt(B2*B2-4*zslope*C2))/(2*zslope);
             v = min(v1,v2);    % we choose the minimum solution, because it is NOT the one in the middle
             
             stick = 0;
@@ -142,7 +143,7 @@ for i = 1:N
     end
     
     % update outgoing velocities with estimated v
-    
+  
     f = zslope*(v-Vh);
     
     Von = -(LPVib + (f/(2*Z))); % new outgoing velocity to nut
@@ -152,16 +153,21 @@ for i = 1:N
     u = Vob;
     
     % output of spring
-    massSpringOutput = x(1); 
-    
+    if x(1) > 0
+        massSpringOutput = x(1); 
+    else 
+        massSpringOutput = 0;
+    end
     % update states
     x = Ad*x + Bd*(u + du);
     du = u;
     
-    nutDelay = [Von, nutDelay(1:nutLength-1)];
-    brigdeDelay = [Vob + massSpringOutput * 100, brigdeDelay(1:brigdeLength-1)];
+    nutDelay = [Von + x(1), nutDelay(1:nutLength-1)];
+    brigdeDelay = [Vob + x(1), brigdeDelay(1:brigdeLength-1)];
     
-    output(i) = Vob * massSpringOutput * 10000  ;
+    
+    
+    output(i) = (Vob * massSpringOutput * 100000);
     
     frictionOutput(i) = f;
     vOutput(i) = v;   
@@ -169,8 +175,8 @@ end
 
 plot(output)
 
-figure
-plot(vOutput)
+%figure
+%plot(vOutput)
 
 soundsc(output,Fs)
 
