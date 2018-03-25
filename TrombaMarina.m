@@ -7,7 +7,7 @@ Fs = 44100;
 
 T = 1/Fs;
 
-b = 0.5;       % Resistance
+b = 0.1;       % Resistance
 k = 1000000;  % spring stiffness
 m = 0.1;        % mass
 
@@ -37,7 +37,7 @@ Ad = H * (a*I + A);
 Bd = H * B;
 
 % Bow model
-freq = 220;
+freq = 440;
 
 N = 4*Fs;
 
@@ -88,7 +88,7 @@ for i = 1:N
     Vh = Vin + LPVib;
     
     % Bow friction calculations
-        
+    
     B2=-0.2*zslope-0.3*Fb-zslope*Vb-zslope*Vh;
     C2=0.06*Fb+zslope*Vh*Vb+0.2*zslope*Vh+0.3*Vb*Fb+0.1*Fb;
     delta2=B2*B2-4*zslope*C2;
@@ -143,7 +143,6 @@ for i = 1:N
     end
     
     % update outgoing velocities with estimated v
-  
     f = zslope*(v-Vh);
     
     Von = -(LPVib + (f/(2*Z))); % new outgoing velocity to nut
@@ -154,23 +153,21 @@ for i = 1:N
     
     % output of spring
     if x(1) > 0
-        massSpringOutput = x(1); 
-    else 
+        massSpringOutput = x(1);
+    else
         massSpringOutput = 0;
     end
     % update states
     x = Ad*x + Bd*(u + du);
     du = u;
     
-    nutDelay = [Von + x(1), nutDelay(1:nutLength-1)];
+    nutDelay = [Von , nutDelay(1:nutLength-1)];
     brigdeDelay = [Vob + x(1), brigdeDelay(1:brigdeLength-1)];
     
-    
-    
-    output(i) = (Vob * massSpringOutput * 100000);
+    output(i) = Vob * massSpringOutput * 100000;
     
     frictionOutput(i) = f;
-    vOutput(i) = v;   
+    vOutput(i) = v;
 end
 
 plot(output)
