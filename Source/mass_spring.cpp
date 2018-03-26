@@ -8,17 +8,21 @@
   ==============================================================================
 */
 #include <math.h>
+#include <iostream>
 
 class MassSpring
 {
     public:
-    double frequency = 0;
+   double frequency = 0;
 
     void setSampleRate(double sampleRate)
     {
         T = double (1.0f/sampleRate);
         alpha = double (2.0f/T);
+        std::cout <<"alpha: " << alpha << "\n";
         frequency = 1/(2*M_PI) * sqrt(k/m);
+        std::cout << "frequency: " << frequency << "\n";
+
         
         updateMatrices();
     }
@@ -42,7 +46,7 @@ class MassSpring
         updateStates();
     }
     
-    double getOutput()
+   double getOutput()
     {
         return x[0];
     }
@@ -52,8 +56,11 @@ class MassSpring
 
     void updateStates()
     {
-        x[0] = Ad[0]*x[0] + Ad[1]*x[1] + Bd[0]*(u + du);
-        x[1] = Ad[2]*x[0] + Ad[3]*x[1] + Bd[1]*(u + du);
+        double tempX0 = x[0];
+        double tempX1 = x[1];
+        
+        x[0] = Ad[0]*tempX0 + Ad[1]*tempX1 + Bd[0]*(u + du);
+        x[1] = Ad[2]*tempX0 + Ad[3]*tempX1 + Bd[1]*(u + du);
         
         // update input to avoid inf if u is not set
         du = u;
@@ -61,7 +68,7 @@ class MassSpring
     }
     void updateMatrices()
     {
-        double temp[4];
+       double temp1[4], temp2[4];
         
         A[0] = 0.0;
         A[1] = 1.0;
@@ -71,34 +78,47 @@ class MassSpring
         B[0] = 0.0;
         B[1] = 1.0/m;
         
-        temp[0] = alpha - A[0];
-        temp[1] = -A[1];
-        temp[2] = -A[2];
-        temp[3] = alpha - A[3];
+        temp1[0] = alpha - A[0];
+        temp1[1] = -A[1];
+        temp1[2] = -A[2];
+        temp1[3] = alpha - A[3];
         
-        invertMatrix(temp, H);
+        invertMatrix(temp1, H);
         
-        temp[0] = alpha+A[0];
-        temp[1] = A[1];
-        temp[2] = A[2];
-        temp[3] = alpha+A[3];
+        for (int i = 0; i < 4; i++)
+            std::cout << "H: " << H[i] << "   index: " << i << "\n";
 
-        // make new matrices to make the updateStates easier
-        Ad[0] = H[0]*temp[0] + H[1]*temp[2];
-        Ad[1] = H[0]*temp[1] + H[1]*temp[3];
         
-        Ad[2] = H[2]*temp[0] + H[3]*temp[2];
-        Ad[3] = H[2]*temp[1] + H[3]*temp[3];
+        temp2[0] = alpha + A[0];
+        temp2[1] = A[1];
+        temp2[2] = A[2];
+        temp2[3] = alpha+A[3];
+
+        for (int i = 0; i < 4; i++)
+            std::cout << "temp2: " << temp2[i] << "   index: " << i << "\n";
+        
+        // make new matrices to make the updateStates easier
+        Ad[0] = H[0]*temp2[0] + H[1]*temp2[2];
+        Ad[1] = H[0]*temp2[1] + H[1]*temp2[3];
+        
+        Ad[2] = H[2]*temp2[0] + H[3]*temp2[2];
+        Ad[3] = H[2]*temp2[1] + H[3]*temp2[3];
+        
+        for (int i = 0; i < 4; i++)
+            std::cout << "Ad: " << Ad[i] << "   index: " << i << "\n";
         
         Bd[0] = H[0]*B[0] + H[1]*B[1];
         Bd[1] = H[2]*B[0] + H[3]*B[1];
+        
+        for (int i = 0; i < 2; i++)
+            std::cout << "Bd: " << Bd[i] << "   index: " << i << "\n";
     }
     
     
     void invertMatrix(double (&m)[4], double (&invOut)[4])
     {
         // one over the determinant
-        double det = 1.0/(m[0]*m[3] - m[2]*m[1]);
+       double det = 1.0/(m[0]*m[3] - m[2]*m[1]);
         
         // Matrix invertion
         invOut[0] = det*m[3];
@@ -106,26 +126,31 @@ class MassSpring
         
         invOut[2] = -det*m[2];
         invOut[3] = det*m[0];
+        
+        for (int i = 0; i < 4; i++)
+            std::cout << "inverse: " << invOut[i] << "   index: " << i << "\n";
+
     }
     
     
-    double u = 0.0;
-    double du = 0.0; // delayed input
+   double u = 0.0;
+   double du = 0.0; // delayed input
     
     // vectors and matrices
-    double x[2] = {0.0,1.0};
+   double x[2] = {1.0, 0.0};
     
-    double A[4] = {0.0, 0.0, 0.0, 0.0};
-    double B[2] = {0.0, 0.0};
+   double A[4] = {0.0, 0.0, 0.0, 0.0};
+   double B[2] = {0.0, 0.0};
     
-    double Ad[4] = {0.0, 0.0, 0.0, 0.0};
-    double Bd[2] = {0.0, 0.0};
-    double H[4] = {0.0, 0.0, 0.0, 0.0};
+   double Ad[4] = {0.0, 0.0, 0.0, 0.0};
+   double Bd[2] = {0.0, 0.0};
     
-    double T = 0.0;
-    double alpha = 0.0;
+   double H[4] = {0.0, 0.0, 0.0, 0.0};
     
-    double b = 0.0001;      // Resistance
-    double k = 1000000;  // spring stiffness
-    double m = 0.1;     // mass
+   double T = 0.0;
+   double alpha = 0.0;
+    
+   double b = 0.0;      // Resistance
+   double k = 1000000;  // spring stiffness
+   double m = 0.1;     // mass
 };

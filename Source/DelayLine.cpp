@@ -16,7 +16,6 @@ class DelayLine{
     void initDelay(float _delayInSeconds, float _fs){
         delayInSeconds = _delayInSeconds;
         fs = _fs;
-
         setDelayTime(_delayInSeconds);
     }
     

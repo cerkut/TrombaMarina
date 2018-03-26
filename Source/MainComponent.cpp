@@ -43,11 +43,11 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
         {
             for (int i = 0; i < bufferToFill.buffer->getNumSamples(); i++)
             {
-                float input = random.nextFloat() * 0.25f - 0.125f;
-                spring.setInput(input);
+                //float input = random.nextFloat() * 10.0f;// - 5.0f;
+                //spring.setInput(input);
                 spring.run();
-               // std::cout << spring.getOutput() * 100000 << "\n";
-                channelData[i] = spring.getOutput() *100000;
+                //std::cout << spring.getOutput()  << "\n";
+                channelData[i] = spring.getOutput();
             }
         }
         else

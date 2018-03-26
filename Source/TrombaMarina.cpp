@@ -23,6 +23,7 @@ void TrombaMarina::init(double sampleRate)
 void TrombaMarina::calculateV()
 {
     float v1, v2, vtemp, fv;
+    
     auto B2 = -0.2*zslope-0.3*fb-zslope*vb-zslope*vh;
     auto C2 = 0.06*fb+zslope*vh*vb+0.2*zslope*vh+0.3*vb*fb+0.1*fb;
     auto delta2 = B2*B2-4*zslope*C2;
