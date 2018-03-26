@@ -7,7 +7,7 @@ Fs = 44100;
 
 T = 1/Fs;
 
-b = 0.1;       % Resistance
+b = 0.5;       % Resistance
 k = 1000000;  % spring stiffness
 m = 0.1;        % mass
 
@@ -15,7 +15,7 @@ m = 0.1;        % mass
 f0 = 1/(2*pi) * sqrt(k/m)
 
 % mass spring states
-x = [0.01,0]';
+x = [0.1,0]';
 
 % input to mass spring
 u = 0;
@@ -37,15 +37,15 @@ Ad = H * (a*I + A);
 Bd = H * B;
 
 % Bow model
-freq = 440;
+freq = 220;
 
 N = 4*Fs;
 
 stringLength = floor(Fs/freq);
 l = stringLength/2;
 Pb = 0.1; % bowing point
-Fb = 0.0001;  % force (N)
-Vb = 0.2;  % velocity (m/s)
+Fb = 0.15;  % force (N)
+Vb = 0.5;  % velocity (m/s)
 
 nutLength = floor(stringLength*(1-Pb));
 brigdeLength = floor(stringLength*Pb);
@@ -72,8 +72,9 @@ frictionOutput = zeros(N,1);
 vOutput = zeros(N,1);
 
 for i = 1:N
-    if Fb < 0.15
-        Fb = Fb + 0.0001;
+    % make input stop to hear how that sounds
+    if i > 2*Fs && Vb >= 0.0001
+        Vb = Vb*0.999;       
     end
     
     Vin = nutDelay(nutLength);
@@ -146,17 +147,14 @@ for i = 1:N
     f = zslope*(v-Vh);
     
     Von = -(LPVib + (f/(2*Z))); % new outgoing velocity to nut
-    Vob = -(LPVin +  (f/(2*Z)));  % new outgoing velocity to bridge
+    Vob = -(Vin +  (f/(2*Z)));  % new outgoing velocity to bridge
     
     % attach mass spring to bow
     u = Vob;
     
     % output of spring
-    if x(1) > 0
-        massSpringOutput = x(1);
-    else
-        massSpringOutput = 0;
-    end
+    massSpringOutput = x(1);
+
     % update states
     x = Ad*x + Bd*(u + du);
     du = u;
@@ -164,7 +162,7 @@ for i = 1:N
     nutDelay = [Von , nutDelay(1:nutLength-1)];
     brigdeDelay = [Vob + x(1), brigdeDelay(1:brigdeLength-1)];
     
-    output(i) = Vob * massSpringOutput * 100000;
+    output(i) = Vob + massSpringOutput;
     
     frictionOutput(i) = f;
     vOutput(i) = v;
