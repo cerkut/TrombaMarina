@@ -16,8 +16,8 @@ class MassSpring
 
     void setSampleRate(double sampleRate)
     {
-        T = 1.0f/sampleRate;
-        alpha = 2.0f/T;
+        T = double (1.0f/sampleRate);
+        alpha = double (2.0f/T);
         frequency = 1/(2*M_PI) * sqrt(k/m);
         
         updateMatrices();
@@ -61,6 +61,8 @@ class MassSpring
     }
     void updateMatrices()
     {
+        double temp[4];
+        
         A[0] = 0.0;
         A[1] = 1.0;
         A[2] = -k/m;
@@ -69,9 +71,12 @@ class MassSpring
         B[0] = 0.0;
         B[1] = 1.0/m;
         
-        invertMatrix();
+        temp[0] = alpha - A[0];
+        temp[1] = -A[1];
+        temp[2] = -A[2];
+        temp[3] = alpha - A[3];
         
-        double temp[4];
+        invertMatrix(temp, H);
         
         temp[0] = alpha+A[0];
         temp[1] = A[1];
@@ -90,24 +95,17 @@ class MassSpring
     }
     
     
-    void invertMatrix()
+    void invertMatrix(double (&m)[4], double (&invOut)[4])
     {
-        double temp[4];
-        
-        temp[0] = alpha - A[0];
-        temp[1] = A[1];
-        temp[2] = A[2];
-        temp[3] = alpha - A[3];
-
         // one over the determinant
-        double det = 1.0/( temp[0]*temp[3] - temp[1]*temp[2]);
+        double det = 1.0/(m[0]*m[3] - m[2]*m[1]);
         
         // Matrix invertion
-        H[0] = det*temp[3];
-        H[1] = -det*temp[1];
+        invOut[0] = det*m[3];
+        invOut[1] = -det*m[1];
         
-        H[2] = -det*temp[2];
-        H[3] = det*temp[0];
+        invOut[2] = -det*m[2];
+        invOut[3] = det*m[0];
     }
     
     
@@ -127,7 +125,7 @@ class MassSpring
     double T = 0.0;
     double alpha = 0.0;
     
-    double b = 1.0;      // Resistance
+    double b = 0.0001;      // Resistance
     double k = 1000000;  // spring stiffness
     double m = 0.1;     // mass
 };
