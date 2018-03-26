@@ -10,27 +10,27 @@
 
 #pragma once
 #include "DelayLine.cpp"
-#include "mass_spring.cpp"
+//#include "mass_spring.cpp"
 class TrombaMarina
 {
-    public:
-    void init(double sampleRate);
+public:
+    void setSampleRate(double sampleRate);
     void setForce(float force);
     void setVelocity(float velocity);
     void setBowingPoint(float bp);
-    float process();
+    float getOutput();
     
-    private:
+private:
     void calculateV();
     
     
     DelayLine nutDelay, brigdeDelay;
-    MassSpring spring;
+    //MassSpring spring;
     
     float fb = 0.1;
     float vb = 0.2;
     float pb = 0.1;
-    float freq = 440;
+    float freq = 220;
     
     float von = 0;
     float vob = 0;
@@ -41,7 +41,7 @@ class TrombaMarina
 //    float dVon = 0;
 //    float dVib = 0;
 //    float dVin = 0;
-    bool stick = 0;
+    bool stick = 1;
     
     double v = 0.0;
     double stringLength = 0.0;

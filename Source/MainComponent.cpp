@@ -29,6 +29,7 @@ MainComponent::~MainComponent()
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
     spring.setSampleRate(sampleRate);
+    vio.setSampleRate(sampleRate);
 }
 
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
@@ -43,11 +44,9 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
         {
             for (int i = 0; i < bufferToFill.buffer->getNumSamples(); i++)
             {
-                //float input = random.nextFloat() * 10.0f;// - 5.0f;
-                //spring.setInput(input);
-                spring.run();
-                //std::cout << spring.getOutput()  << "\n";
-                channelData[i] = spring.getOutput();
+                
+               // std::cout << vio.getOutput()  << "\n";
+                channelData[i] = vio.getOutput() *0.5;
             }
         }
         else

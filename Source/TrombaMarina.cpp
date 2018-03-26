@@ -9,14 +9,17 @@
  */
 
 #include "TrombaMarina.h"
+#include <cmath>
 
-void TrombaMarina::init(double sampleRate)
+void TrombaMarina::setSampleRate(double sampleRate)
 {
-    stringLength = (sampleRate/freq) * 0.5;
+   // stringLength = freq;
     
-    brigdeDelay.initDelay(stringLength*pb, sampleRate);
-    nutDelay.initDelay(stringLength*(1-pb), sampleRate);
-    
+    brigdeDelay.initDelay(0.01, sampleRate);
+    brigdeDelay.setFrequency(freq*pb);
+    nutDelay.initDelay(0.01, sampleRate);
+    nutDelay.setFrequency(freq*(1-pb));
+
     
 }
 
@@ -50,7 +53,7 @@ void TrombaMarina::calculateV()
                 v1 = (-B2+sqrt(B2*B2-4*zslope*C2))/(2*zslope);
                 v2 = (-B2-sqrt(B2*B2-4*zslope*C2))/(2*zslope);
                 
-                vtemp = 0;//min(v1, v2);  // we choose the minimum solution, because it is NOT the one in the middle
+                vtemp = fmin(v1, v2);  // we choose the minimum solution, because it is NOT the one in the middle
                 
                 stick = 0;
                 
@@ -66,7 +69,7 @@ void TrombaMarina::calculateV()
         {
             v1 = (-B2+sqrt(B2*B2-4*zslope*C2))/(2*zslope);
             v2 = (-B2-sqrt(B2*B2-4*zslope*C2))/(2*zslope);
-            v = 0;//min(v1,v2);   // we choose the minimum solution, because it is NOT the one in the middle
+            v = fmin(v1,v2);   // we choose the minimum solution, because it is NOT the one in the middle
             
             stick = 0;
             
@@ -80,7 +83,7 @@ void TrombaMarina::calculateV()
     
     
 }
-float TrombaMarina::process()
+float TrombaMarina::getOutput()
 {
     float f;
     vin = -nutDelay.getOutput();
@@ -97,8 +100,8 @@ float TrombaMarina::process()
     vob = -(vin +  (f/(2*Z))); //new outgoing velocity to bridge
     
     // update delay
-    //brigdeDelay.tick(newVelocity + nutReflection);
-    //nutDelay.tick(newVelocity + brigdeReflection);
+    brigdeDelay.tick(vob);
+    nutDelay.tick(von);
     
     return vob;
 }
