@@ -3,6 +3,7 @@
     by Nikolaj Andersson, 27. March 2018
     
 */
+#pragma once
 
 class OnePoleFilter
 {
@@ -30,5 +31,5 @@ private:
 
     float state = 0.0f;
     float T = 0.0f;
-    float g = 0.35f;
+    float g = 0.45f;
 };

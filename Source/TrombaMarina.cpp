@@ -15,7 +15,7 @@
 void TrombaMarina::setSampleRate(double sampleRate)
 {
     fs = sampleRate;
-    stringLength = sampleRate/freq;
+    stringLength = (sampleRate/freq);
     spring.setSampleRate(fs);
     spring.setFrequency(freq, 0.1);
 
@@ -23,16 +23,9 @@ void TrombaMarina::setSampleRate(double sampleRate)
 //    std::cout << stringLength*pb << "\n";
 //    std::cout << stringLength*(1-pb) << "\n";
     brigdeDelay.initDelay(0.01, sampleRate);
-    brigdeDelay.setDelayLengthInSamples(floor(stringLength*pb));
+    brigdeDelay.setDelayLengthInSamples(stringLength*pb);
     nutDelay.initDelay(0.01, sampleRate);
-    nutDelay.setDelayLengthInSamples(floor(stringLength*(1-pb)));
-    
-    /*brigdeDelay.initDelay(0.01, sampleRate);
-    brigdeDelay.setDelayLengthInSamples(stringLength);
-    nutDelay.initDelay(0.01, sampleRate);
-    nutDelay.setDelayLengthInSamples(stringLength);*/
-    
-    
+    nutDelay.setDelayLengthInSamples(stringLength*(1-pb));
 }
 
 void TrombaMarina::setFrequency(float frequency)
@@ -40,17 +33,17 @@ void TrombaMarina::setFrequency(float frequency)
     freq = frequency;
     spring.setFrequency(freq, 0.1);
 
-    stringLength = fs/freq;
-    brigdeDelay.setDelayLengthInSamples(floor(stringLength*pb));
-    nutDelay.setDelayLengthInSamples(floor(stringLength*(1-pb)));
+    stringLength = (fs/freq) * 0.5;
+    brigdeDelay.setDelayLengthInSamples(stringLength*pb);
+    nutDelay.setDelayLengthInSamples(stringLength*(1-pb));
 }
 
 void TrombaMarina::setBowingPoint(float bp)
 {
     pb = bp;
     
-    brigdeDelay.setDelayLengthInSamples(floor(stringLength*pb));
-    nutDelay.setDelayLengthInSamples(floor(stringLength*(1-pb)));
+    brigdeDelay.setDelayLengthInSamples(stringLength*pb);
+    nutDelay.setDelayLengthInSamples(stringLength*(1-pb));
 }
 
 void TrombaMarina::calculateV(double& v, double vh, float vb)
@@ -136,12 +129,12 @@ float TrombaMarina::getOutput(float vb)
     double vob = -(vin +  (f/(2*Z))); //new outgoing velocity to bridge
 
     
-    spring.setInput(vib * 500);
+    spring.setInput(vib);
     spring.run();
     // update delay
     brigdeDelay.tick(vob);
     nutDelay.tick(von);
     
-    return vob + spring.getOutput() ;
+    return vob;
 }
 

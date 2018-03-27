@@ -7,6 +7,7 @@
 
   ==============================================================================
 */
+#pragma once
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "OnePoleFilter.hpp"
@@ -20,6 +21,7 @@ class DelayLine{
         fs = _fs;
         setDelayTime(_delayInSeconds);
         filter.setSampleRate(fs);
+        
         for (int i = 0; i < maxDelayTime; i++)
             delay[i] = 0.0f;
     }
@@ -61,18 +63,18 @@ class DelayLine{
     
     void tick(float input){
         
-        int writePos = (pos + 1) % delayInSamples;
-        
+        int writePos = (pos + 1) % (delayInSamples + 1);
+        /*
         int readPos = pos - delayInSamples;
         
         if (readPos < 0)
-            readPos += delayInSamples;
+            readPos += delayInSamples + 1;
+        */
+       // int nextReadPos = (readPos + 1) % delayInSamples;
         
-        int nextReadPos = (readPos + 1) % delayInSamples;
+        //float out = frac * delay[nextReadPos] + (1-frac)*delay[nextReadPos];
         
-        float out = frac * delay[readPos] + (1-frac)*delay[nextReadPos];
-        
-        delay[writePos] = input + feedback*out;
+        delay[writePos] = input;// + feedback*out;
 
         pos = writePos;        
     }
@@ -81,11 +83,15 @@ class DelayLine{
         int readPos = pos - delayInSamples;
         
         if (readPos < 0)
-            readPos += delayInSamples;
+            readPos += delayInSamples + 1;
         
-        int nextReadPos = (readPos + 1) % delayInSamples;
+        int nextReadPos = (readPos + 1) % (delayInSamples + 1);
         
-        return  frac*delay[readPos] + (1-frac)*delay[nextReadPos];
+        float out = frac*delay[nextReadPos] + (1-frac)*delay[readPos];
+        
+        delay[pos] += feedback*out;
+        
+        return out;
     }
     
     float getLPOutput(){          

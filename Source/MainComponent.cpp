@@ -28,8 +28,10 @@ MainComponent::~MainComponent()
 //==============================================================================
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
+    fs = sampleRate;
     spring.setSampleRate(sampleRate);
     vio.setSampleRate(sampleRate);
+    //delay.initDelay(0.01, sampleRate);
 }
 
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
@@ -37,9 +39,11 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
     bufferToFill.clearActiveBufferRegion();
     
     
-    //vio.setBowingPoint(bowPoint.load());
-    //vio.setFrequency(frequency.load());
-    
+    if (pluckNow.load())
+    {
+        //vio.setBowingPoint(bowPoint.load());//delay.setDelayLengthInSamples(fs/frequency.load());
+        //vio.setFrequency(frequency.load());
+    }
     for (int channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
     {
         float* const channelData = bufferToFill.buffer->getWritePointer (channel, bufferToFill.startSample);
@@ -50,13 +54,27 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
             {
                 
                 float out = 0.0f;
+                /*
+                out = delay.getLPOutput();
                 //float bowVelocity = 0.0f;
                
-                //if (pluckNow.load())
-                    //bowVelocity = 0.1; //r.nextFloat() * 2 - 1;
+                if (pluckNow.load() && count < 400)
+                {
+                    count++;
+                    delay.tick(r.nextFloat() * 2 - 1 + out);//bowVelocity = 0.1; //r.nextFloat() * 2 - 1;
+                } else if (!pluckNow.load())
+                {
+                    count = 0;
+                    delay.tick(out);
+                }
+                else
+                {
+                    delay.tick(out);//bowVelocity = 0.1; //r.nextFloat() * 2 - 1;
+                    //count = 0;
+                }*/
                 
                 
-                 out = vio.getOutput(bowVelocity.load());
+                out = vio.getOutput(bowVelocity.load());
                     
                 //std::cout << out   << "\n";
 
@@ -105,14 +123,14 @@ void MainComponent::mouseDrag (const MouseEvent& e)
 {
     float freq = e.getScreenY() + 100;
     bowVelocity.store (e.getScreenY()/1200.0f);
-    //bowPoint.store (e.getScreenX()/1200.0f);
+    bowPoint.store (e.getScreenX()/1200.0f);
     frequency.store (freq);
-    //std::cout << e.getScreenX()/1200.0f << "\n";
+    std::cout << e.getScreenX()/1200.0f << "\n";
 }
 void MainComponent::mouseUp (const MouseEvent& e)
 {
     pluckNow.store (false);
     bowVelocity.store (0.0f);
-   // bowPoint.store (e.getScreenX()/1200.0f);
+    bowPoint.store (e.getScreenX()/1200.0f);
 
 }

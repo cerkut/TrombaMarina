@@ -9,8 +9,8 @@
 */
 
 #pragma once
-#include "DelayLine.cpp"
-#include "mass_spring.cpp"
+#include "DelayLine.hpp"
+#include "mass_spring.hpp"
 
 class TrombaMarina
 {
