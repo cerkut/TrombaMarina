@@ -110,7 +110,7 @@ void TrombaMarina::calculateV(double& v, double vh, float vb)
 
 float TrombaMarina::getOutput(float vb)
 {
-    double v = vb;
+    double v = 0;
 
     double vin = nutDelay.getOutput();
     double vib = brigdeDelay.getLPOutput();
@@ -125,12 +125,12 @@ float TrombaMarina::getOutput(float vb)
     double vob = -(vin +  (f/(2*Z))); //new outgoing velocity to bridge
 
     
-    spring.setInput(vib);
+    spring.setInput(vob*50);
     spring.run();
     // update delay
-    brigdeDelay.tick(vob);
+    brigdeDelay.tick(vob + spring.getOutput());
     nutDelay.tick(von);
     
-    return vob;
+    return vob * spring.getOutput() * 10;
 }
 

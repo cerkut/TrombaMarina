@@ -10,7 +10,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "TrombaMarina.h"
-//#include "DelayLine.hpp"
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -42,7 +41,7 @@ private:
     // Your private member variables go here...
     MassSpring spring;
     TrombaMarina vio;
-    //DelayLine delay;
+
     double fs = 44100;
     int count = 0;
     Random r;
