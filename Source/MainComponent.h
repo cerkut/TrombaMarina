@@ -11,6 +11,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "mass_spring.cpp"
 #include "TrombaMarina.h"
+
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -33,9 +34,16 @@ public:
     void resized() override;
 
 private:
+    void mouseDown (const MouseEvent& e) override;
+    void mouseDrag (const MouseEvent& e) override;
+    void mouseUp (const MouseEvent& e) override;
+
+    
     //==============================================================================
     // Your private member variables go here...
     MassSpring spring;
     TrombaMarina vio;
+    Random r;
+    std::atomic<bool> pluckNow;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

@@ -9,7 +9,7 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent()
+MainComponent::MainComponent() : pluckNow(false)
 {
     // Make sure you set the size of the component after
     // you add any child components.
@@ -45,8 +45,18 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
             for (int i = 0; i < bufferToFill.buffer->getNumSamples(); i++)
             {
                 
-               // std::cout << vio.getOutput()  << "\n";
-                channelData[i] = vio.getOutput() *0.5;
+                float out = 0.0f;
+                float bowVelocity = 0.0f;
+               
+                if (pluckNow.load())
+                    bowVelocity = 0.1; //r.nextFloat() * 2 - 1;
+                
+                
+                 out = vio.getOutput(bowVelocity);
+                    
+                //std::cout << out   << "\n";
+
+                channelData[i] = out; //vio.getOutput();
             }
         }
         else
@@ -80,4 +90,17 @@ void MainComponent::resized()
     // This is called when the MainContentComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
+}
+
+void MainComponent::mouseDown (const MouseEvent& e)
+{
+    pluckNow.store (true);
+}
+void MainComponent::mouseDrag (const MouseEvent& e)
+{
+
+}
+void MainComponent::mouseUp (const MouseEvent& e) 
+{
+    pluckNow.store (false);
 }

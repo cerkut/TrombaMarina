@@ -9,6 +9,8 @@
 */
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "OnePoleFilter.hpp"
+#include <iostream>
 
 class DelayLine{
     public:
@@ -17,13 +19,17 @@ class DelayLine{
         delayInSeconds = _delayInSeconds;
         fs = _fs;
         setDelayTime(_delayInSeconds);
+        filter.setSampleRate(fs);
+        for (int i = 0; i < maxDelayTime; i++)
+            delay[i] = 0.0f;
     }
     
     
     void setDelayTime(float _delayInSeconds){
         delayInSamples = ceil(fs*delayInSeconds);
         
-        if (delayInSamples > 88200) delayInSamples = 88200;
+        if (delayInSamples > maxDelayTime)
+            delayInSamples = maxDelayTime;
         
         frac = fs*delayInSeconds - floor(fs*delayInSeconds);
     }
@@ -34,7 +40,23 @@ class DelayLine{
     
     void setFrequency(float freq){
         delayInSamples = ceil(fs/freq);
-    
+        frac = fs/freq - floor(fs/freq);
+
+    }
+    void setDelayLengthInSamples(float lengthInSamples) // it can also be fractional samples
+    {
+        delayInSamples = ceil(lengthInSamples);
+        
+        if (delayInSamples > maxDelayTime)
+            delayInSamples = maxDelayTime;
+
+        frac = lengthInSamples - floor(lengthInSamples);
+        
+     /*  std::cout << "string length in samples: "<<lengthInSamples << "\n";
+        std::cout << "delayInSamples : "<< delayInSamples << "\n";
+
+         std::cout << "frac: "<< frac << "\n";
+    */
     }
     
     void tick(float input){
@@ -43,12 +65,12 @@ class DelayLine{
         
         int readPos = pos - delayInSamples;
         
-        if (readPos < 0) readPos += delayInSamples;
+        if (readPos < 0)
+            readPos += delayInSamples;
         
         int nextReadPos = (readPos + 1) % delayInSamples;
         
         float out = frac * delay[readPos] + (1-frac)*delay[nextReadPos];
-        
         
         delay[writePos] = input + feedback*out;
 
@@ -58,31 +80,32 @@ class DelayLine{
     float getOutput(){
         int readPos = pos - delayInSamples;
         
-        if (readPos < 0) readPos += delayInSamples;
+        if (readPos < 0)
+            readPos += delayInSamples;
         
         int nextReadPos = (readPos + 1) % delayInSamples;
         
-        return frac * delay[readPos] + (1-frac)*delay[nextReadPos];
+        return  frac*delay[readPos] + (1-frac)*delay[nextReadPos];
     }
     
     float getLPOutput(){          
+
         float out = getOutput();
-        float currentOut = a*out + (1-a)*previousOutput;
-        previousOutput = out;
-        
-        return currentOut;
+        return filter.getLowpass(out);
     }
     private:
-    
+    static const int maxDelayTime = 88200;
     float delayInSeconds;
     int delayInSamples;
     float frac; 
     int pos;
-    float a = 0.5;
-    float previousOutput = 0;
+    
+   // float g = 0.25;
+    OnePoleFilter filter;
+    //float previousOutput = 0;
     
     float feedback = 0.0;
     float fs = 44100; 
-    float delay[88200] = {};
+    float delay[maxDelayTime] = {};
     
 };
