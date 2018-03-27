@@ -9,7 +9,6 @@
 #pragma once
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "mass_spring.cpp"
 #include "TrombaMarina.h"
 
 //==============================================================================
@@ -45,5 +44,7 @@ private:
     TrombaMarina vio;
     Random r;
     std::atomic<bool> pluckNow;
+    std::atomic<float> bowVelocity, frequency, bowPoint;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

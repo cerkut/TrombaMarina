@@ -9,7 +9,7 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent() : pluckNow(false)
+MainComponent::MainComponent() : pluckNow(false), bowVelocity (0.0f), frequency (220), bowPoint(0.1)
 {
     // Make sure you set the size of the component after
     // you add any child components.
@@ -36,6 +36,10 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
 {
     bufferToFill.clearActiveBufferRegion();
     
+    
+    //vio.setBowingPoint(bowPoint.load());
+    //vio.setFrequency(frequency.load());
+    
     for (int channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
     {
         float* const channelData = bufferToFill.buffer->getWritePointer (channel, bufferToFill.startSample);
@@ -46,13 +50,13 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
             {
                 
                 float out = 0.0f;
-                float bowVelocity = 0.0f;
+                //float bowVelocity = 0.0f;
                
-                if (pluckNow.load())
-                    bowVelocity = 0.1; //r.nextFloat() * 2 - 1;
+                //if (pluckNow.load())
+                    //bowVelocity = 0.1; //r.nextFloat() * 2 - 1;
                 
                 
-                 out = vio.getOutput(bowVelocity);
+                 out = vio.getOutput(bowVelocity.load());
                     
                 //std::cout << out   << "\n";
 
@@ -95,12 +99,20 @@ void MainComponent::resized()
 void MainComponent::mouseDown (const MouseEvent& e)
 {
     pluckNow.store (true);
+    bowVelocity.store (e.getScreenY()/1200.0f);
 }
 void MainComponent::mouseDrag (const MouseEvent& e)
 {
-
+    float freq = e.getScreenY() + 100;
+    bowVelocity.store (e.getScreenY()/1200.0f);
+    //bowPoint.store (e.getScreenX()/1200.0f);
+    frequency.store (freq);
+    //std::cout << e.getScreenX()/1200.0f << "\n";
 }
-void MainComponent::mouseUp (const MouseEvent& e) 
+void MainComponent::mouseUp (const MouseEvent& e)
 {
     pluckNow.store (false);
+    bowVelocity.store (0.0f);
+   // bowPoint.store (e.getScreenX()/1200.0f);
+
 }

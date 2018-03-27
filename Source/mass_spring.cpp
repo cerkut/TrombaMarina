@@ -24,7 +24,15 @@ public:
         //std::cout << "frequency: " << frequency << "\n";
         updateMatrices();
     }
-    
+    void setFrequency(float freq, float mass)
+    {
+        frequency = freq;
+        m = mass;
+        double temp = frequency * (2 * M_PI) * sqrt(m);
+        k = temp * temp;
+        
+        updateMatrices();
+    }
     void init(double res, double stiffness, double mass, double initialState[2])
     {
         b = res;
@@ -136,7 +144,7 @@ private:
    double du = 0.0; // delayed input
     
     // vectors and matrices
-   double x[2] = {1.0, 0.0};
+   double x[2] = {0.0, 0.0};
     
    double A[4] = {0.0, 0.0, 0.0, 0.0};
    double B[2] = {0.0, 0.0};
@@ -149,7 +157,7 @@ private:
    double T = 0.0;
    double alpha = 0.0;
     
-   double b = 0.0;      // Resistance
+   double b = 0.05;      // Resistance
    double k = 1000000;  // spring stiffness
    double m = 0.1;     // mass
 };

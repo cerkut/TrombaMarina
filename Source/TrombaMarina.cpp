@@ -14,11 +14,14 @@
 
 void TrombaMarina::setSampleRate(double sampleRate)
 {
+    fs = sampleRate;
     stringLength = sampleRate/freq;
-    
-    std::cout << stringLength << "\n";
-    std::cout << stringLength*pb << "\n";
-    std::cout << stringLength*(1-pb) << "\n";
+    spring.setSampleRate(fs);
+    spring.setFrequency(freq, 0.1);
+
+//    std::cout << stringLength << "\n";
+//    std::cout << stringLength*pb << "\n";
+//    std::cout << stringLength*(1-pb) << "\n";
     brigdeDelay.initDelay(0.01, sampleRate);
     brigdeDelay.setDelayLengthInSamples(floor(stringLength*pb));
     nutDelay.initDelay(0.01, sampleRate);
@@ -30,6 +33,24 @@ void TrombaMarina::setSampleRate(double sampleRate)
     nutDelay.setDelayLengthInSamples(stringLength);*/
     
     
+}
+
+void TrombaMarina::setFrequency(float frequency)
+{
+    freq = frequency;
+    spring.setFrequency(freq, 0.1);
+
+    stringLength = fs/freq;
+    brigdeDelay.setDelayLengthInSamples(floor(stringLength*pb));
+    nutDelay.setDelayLengthInSamples(floor(stringLength*(1-pb)));
+}
+
+void TrombaMarina::setBowingPoint(float bp)
+{
+    pb = bp;
+    
+    brigdeDelay.setDelayLengthInSamples(floor(stringLength*pb));
+    nutDelay.setDelayLengthInSamples(floor(stringLength*(1-pb)));
 }
 
 void TrombaMarina::calculateV(double& v, double vh, float vb)
@@ -102,9 +123,8 @@ float TrombaMarina::getOutput(float vb)
 {
     double v = vb;
 
-    double vin = nutDelay.getLPOutput();
+    double vin = nutDelay.getOutput();
     double vib = brigdeDelay.getLPOutput();
-    
     double vh = vin + vib;
     
     calculateV(v, vh, vb);
@@ -115,10 +135,13 @@ float TrombaMarina::getOutput(float vb)
     double von = -(vib + (f/(2*Z)));  // new outgoing velocity to nut
     double vob = -(vin +  (f/(2*Z))); //new outgoing velocity to bridge
 
+    
+    spring.setInput(vib * 500);
+    spring.run();
     // update delay
     brigdeDelay.tick(vob);
     nutDelay.tick(von);
     
-    return vob;
+    return vob + spring.getOutput() ;
 }
 

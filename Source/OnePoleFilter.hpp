@@ -30,5 +30,5 @@ private:
 
     float state = 0.0f;
     float T = 0.0f;
-    float g = 0.55f;
+    float g = 0.35f;
 };
