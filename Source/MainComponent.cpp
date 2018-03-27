@@ -31,7 +31,6 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
     fs = sampleRate;
     spring.setSampleRate(sampleRate);
     vio.setSampleRate(sampleRate);
-    //delay.initDelay(0.01, sampleRate);
 }
 
 void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill)
@@ -54,31 +53,10 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
             {
                 
                 float out = 0.0f;
-                /*
-                out = delay.getLPOutput();
-                //float bowVelocity = 0.0f;
-               
-                if (pluckNow.load() && count < 400)
-                {
-                    count++;
-                    delay.tick(r.nextFloat() * 2 - 1 + out);//bowVelocity = 0.1; //r.nextFloat() * 2 - 1;
-                } else if (!pluckNow.load())
-                {
-                    count = 0;
-                    delay.tick(out);
-                }
-                else
-                {
-                    delay.tick(out);//bowVelocity = 0.1; //r.nextFloat() * 2 - 1;
-                    //count = 0;
-                }*/
-                
-                
-                out = vio.getOutput(bowVelocity.load());
-                    
-                //std::cout << out   << "\n";
 
-                channelData[i] = out; //vio.getOutput();
+                out = vio.getOutput(bowVelocity.load());
+
+                channelData[i] = out;
             }
         }
         else
@@ -125,12 +103,11 @@ void MainComponent::mouseDrag (const MouseEvent& e)
     bowVelocity.store (e.getScreenY()/1200.0f);
     bowPoint.store (e.getScreenX()/1200.0f);
     frequency.store (freq);
-    std::cout << e.getScreenX()/1200.0f << "\n";
+    //std::cout << e.getScreenX()/1200.0f << "\n";
 }
 void MainComponent::mouseUp (const MouseEvent& e)
 {
     pluckNow.store (false);
     bowVelocity.store (0.0f);
     bowPoint.store (e.getScreenX()/1200.0f);
-
 }

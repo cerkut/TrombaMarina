@@ -11,7 +11,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "OnePoleFilter.hpp"
-#include <iostream>
 
 class DelayLine{
     public:
@@ -53,28 +52,13 @@ class DelayLine{
             delayInSamples = maxDelayTime;
 
         frac = lengthInSamples - floor(lengthInSamples);
-        
-     /*  std::cout << "string length in samples: "<<lengthInSamples << "\n";
-        std::cout << "delayInSamples : "<< delayInSamples << "\n";
-
-         std::cout << "frac: "<< frac << "\n";
-    */
     }
     
     void tick(float input){
         
         int writePos = (pos + 1) % (delayInSamples + 1);
-        /*
-        int readPos = pos - delayInSamples;
-        
-        if (readPos < 0)
-            readPos += delayInSamples + 1;
-        */
-       // int nextReadPos = (readPos + 1) % delayInSamples;
-        
-        //float out = frac * delay[nextReadPos] + (1-frac)*delay[nextReadPos];
-        
-        delay[writePos] = input;// + feedback*out;
+    
+        delay[writePos] = input;
 
         pos = writePos;        
     }
@@ -106,9 +90,7 @@ class DelayLine{
     float frac; 
     int pos;
     
-   // float g = 0.25;
     OnePoleFilter filter;
-    //float previousOutput = 0;
     
     float feedback = 0.0;
     float fs = 44100; 

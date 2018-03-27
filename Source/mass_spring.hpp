@@ -10,7 +10,6 @@
 #pragma once
 
 #include <math.h>
-#include <iostream>
 
 class MassSpring
 {
@@ -21,11 +20,10 @@ public:
     {
         T = double (1.0f/sampleRate);
         alpha = double (2.0f/T);
-        //std::cout <<"alpha: " << alpha << "\n";
         frequency = 1/(2*M_PI) * sqrt(k/m);
-        //std::cout << "frequency: " << frequency << "\n";
         updateMatrices();
     }
+    
     void setFrequency(float freq, float mass)
     {
         frequency = freq;
@@ -35,6 +33,7 @@ public:
         
         updateMatrices();
     }
+    
     void init(double res, double stiffness, double mass, double initialState[2])
     {
         b = res;
@@ -45,10 +44,12 @@ public:
         x[0] = initialState[0];
         x[1] = initialState[1];
     }
+    
     void setInput(double input)
     {
         u = input;
     }
+    
     void run()
     {
         updateStates();
@@ -74,6 +75,7 @@ private:
         du = u;
         u = 0.0;
     }
+    
     void updateMatrices()
     {
        double temp1[4], temp2[4];
@@ -92,37 +94,24 @@ private:
         temp1[3] = alpha - A[3];
         
         invertMatrix(temp1, H);
-  /*
-        for (int i = 0; i < 4; i++)
-            std::cout << "H: " << H[i] << "   index: " << i << "\n";
-*/
+
         
         temp2[0] = alpha + A[0];
         temp2[1] = A[1];
         temp2[2] = A[2];
         temp2[3] = alpha+A[3];
-/*
-        for (int i = 0; i < 4; i++)
-            std::cout << "temp2: " << temp2[i] << "   index: " << i << "\n";
-  */
+
         // make new matrices to make the updateStates easier
         Ad[0] = H[0]*temp2[0] + H[1]*temp2[2];
         Ad[1] = H[0]*temp2[1] + H[1]*temp2[3];
         
         Ad[2] = H[2]*temp2[0] + H[3]*temp2[2];
         Ad[3] = H[2]*temp2[1] + H[3]*temp2[3];
-        /*
-        for (int i = 0; i < 4; i++)
-            std::cout << "Ad: " << Ad[i] << "   index: " << i << "\n";
-        */
+
         Bd[0] = H[0]*B[0] + H[1]*B[1];
         Bd[1] = H[2]*B[0] + H[3]*B[1];
         
-       /* for (int i = 0; i < 2; i++)
-            std::cout << "Bd: " << Bd[i] << "   index: " << i << "\n";
-        */
     }
-    
     
     void invertMatrix(double (&m)[4], double (&invOut)[4])
     {
@@ -135,10 +124,7 @@ private:
         
         invOut[2] = -det*m[2];
         invOut[3] = det*m[0];
-       /*
-        for (int i = 0; i < 4; i++)
-            std::cout << "inverse: " << invOut[i] << "   index: " << i << "\n";
-*/
+    
     }
     
     

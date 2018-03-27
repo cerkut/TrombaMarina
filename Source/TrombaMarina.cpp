@@ -19,9 +19,6 @@ void TrombaMarina::setSampleRate(double sampleRate)
     spring.setSampleRate(fs);
     spring.setFrequency(freq, 0.1);
 
-//    std::cout << stringLength << "\n";
-//    std::cout << stringLength*pb << "\n";
-//    std::cout << stringLength*(1-pb) << "\n";
     brigdeDelay.initDelay(0.01, sampleRate);
     brigdeDelay.setDelayLengthInSamples(stringLength*pb);
     nutDelay.initDelay(0.01, sampleRate);
@@ -109,9 +106,8 @@ void TrombaMarina::calculateV(double& v, double vh, float vb)
             }
         }
     }
-    
-    //std::cout << "v: " << v << "\n";
 }
+
 float TrombaMarina::getOutput(float vb)
 {
     double v = vb;
