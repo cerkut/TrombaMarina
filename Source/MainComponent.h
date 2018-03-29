@@ -46,7 +46,7 @@ private:
     int count = 0;
     Random r;
     std::atomic<bool> pluckNow;
-    std::atomic<float> bowVelocity, frequency, bowPoint;
+    std::atomic<float> bowVelocity, frequency, bowPoint, bowForce;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

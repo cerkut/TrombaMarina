@@ -20,7 +20,7 @@ public:
     void setVelocity(float velocity);
     void setBowingPoint(float bp);
     void setFrequency(float frequency);
-    float getOutput(float vb);
+    float getOutput(float bowForce, float vb);
     
 private:
     void calculateV(double& v, double vh, float vb);

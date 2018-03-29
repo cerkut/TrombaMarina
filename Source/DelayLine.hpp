@@ -16,7 +16,7 @@ class DelayLine{
     public:
     
     void initDelay(float _delayInSeconds, float _fs){
-        delayInSeconds = _delayInSeconds;
+        //delayInSeconds = _delayInSeconds;
         fs = _fs;
         setDelayTime(_delayInSeconds);
         filter.setSampleRate(fs);
@@ -27,6 +27,7 @@ class DelayLine{
     
     
     void setDelayTime(float _delayInSeconds){
+        delayInSeconds = _delayInSeconds;
         delayInSamples = ceil(fs*delayInSeconds);
         
         if (delayInSamples > maxDelayTime)
@@ -57,8 +58,18 @@ class DelayLine{
     void tick(float input){
         
         int writePos = (pos + 1) % (delayInSamples + 1);
-    
-        delay[writePos] = input;
+
+        int readPos = pos - delayInSamples;
+        
+        if (readPos < 0)
+            readPos += delayInSamples + 1;
+        
+        int nextReadPos = (readPos + 1) % (delayInSamples + 1);
+        
+        float out = frac*delay[nextReadPos] + (1-frac)*delay[readPos];
+        
+        //delay[pos] += 
+        delay[writePos] = input + feedback*out;
 
         pos = writePos;        
     }
@@ -73,7 +84,7 @@ class DelayLine{
         
         float out = frac*delay[nextReadPos] + (1-frac)*delay[readPos];
         
-        delay[pos] += feedback*out;
+        //delay[pos] += feedback*out;
         
         return out;
     }

@@ -9,7 +9,7 @@
 #include "MainComponent.h"
 
 //==============================================================================
-MainComponent::MainComponent() : pluckNow(false), bowVelocity (0.0f), frequency (220), bowPoint(0.1)
+MainComponent::MainComponent() : pluckNow(false), bowVelocity (0.1f), frequency (220), bowPoint(0.1), bowForce(0.0)
 {
     // Make sure you set the size of the component after
     // you add any child components.
@@ -53,9 +53,10 @@ void MainComponent::getNextAudioBlock (const AudioSourceChannelInfo& bufferToFil
             {
                 
                 float out = 0.0f;
-
-                out = vio.getOutput(bowVelocity.load());
-
+                
+                //if (pluckNow.load())
+                out = vio.getOutput(bowForce.load(), bowVelocity.load());
+                
                 channelData[i] = out;
             }
         }
@@ -95,19 +96,21 @@ void MainComponent::resized()
 void MainComponent::mouseDown (const MouseEvent& e)
 {
     pluckNow.store (true);
-    bowVelocity.store (e.getScreenY()/1200.0f);
+    bowForce.store (0.01);
 }
 void MainComponent::mouseDrag (const MouseEvent& e)
 {
-    float freq = e.getScreenY() + 100;
-    bowVelocity.store (e.getScreenY()/1200.0f);
-    bowPoint.store (e.getScreenX()/1200.0f);
+    float freq = e.getScreenY()+ 50;
+   // bowVelocity.store (e.getScreenY()/1200.0f);
+    //bowForce.store (e.getScreenX()/1200.0f);
+    bowForce.store (0.01);
+
     frequency.store (freq);
     //std::cout << e.getScreenX()/1200.0f << "\n";
 }
 void MainComponent::mouseUp (const MouseEvent& e)
 {
     pluckNow.store (false);
-    bowVelocity.store (0.0f);
+    bowForce.store (0.0f);
     bowPoint.store (e.getScreenX()/1200.0f);
 }

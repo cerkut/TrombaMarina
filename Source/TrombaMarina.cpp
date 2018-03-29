@@ -108,11 +108,12 @@ void TrombaMarina::calculateV(double& v, double vh, float vb)
     }
 }
 
-float TrombaMarina::getOutput(float vb)
+float TrombaMarina::getOutput(float bowForce, float vb)
 {
+    fb = bowForce;
     double v = 0;
 
-    double vin = nutDelay.getOutput();
+    double vin = nutDelay.getLPOutput();
     double vib = brigdeDelay.getLPOutput();
     double vh = vin + vib;
     
@@ -125,12 +126,12 @@ float TrombaMarina::getOutput(float vb)
     double vob = -(vin +  (f/(2*Z))); //new outgoing velocity to bridge
 
     
-    spring.setInput(vob*50);
+    spring.setInput(vob*100);
     spring.run();
     // update delay
-    brigdeDelay.tick(vob + spring.getOutput());
+    brigdeDelay.tick(vob);
     nutDelay.tick(von);
     
-    return vob * spring.getOutput() * 10;
+    return vob;// + spring.getOutput();
 }
 
