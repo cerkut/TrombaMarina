@@ -2,15 +2,16 @@
 % Stefania bow model together with a mass spring model
 clear; clc; close all;
 Fs = 44100;
-
-freq = 220;
+[body, fs] = audioread('aguitar.wav'); % random guitar body IR
+body = body(:,1);
+freq = 110;
 % mass spring
 
 T = 1/Fs;
 
-b = 0.5;       % Resistance
+b = 5;       % Resistance
 k = 100000;  % spring stiffness
-m = 0.1;        % mass
+m = 1;        % mass
 
 % calculate k to find a precise mass spring frequency
 springFreq = freq*2; % could be dependent on the string frequency
@@ -48,7 +49,7 @@ N = 4*Fs;
 stringLength = floor(Fs/freq);
 l = stringLength/2;
 Pb = 0.1; % bowing point
-Fb = 0.15;  % force (N)
+Fb = 0.25;  % force (N)
 Vb = 0.15;  % velocity (m/s)
 
 nutLength = floor(stringLength*(1-Pb));
@@ -77,8 +78,8 @@ vOutput = zeros(N,1);
 
 for i = 1:N
     % make input stop to hear how that sounds
-    if i > 2*Fs && Vb >= 0.0001
-        Vb = Vb*0.999;       
+    if i > 2*Fs
+        Fb = 0;
     end
     
     Vin = nutDelay(nutLength);
@@ -154,28 +155,44 @@ for i = 1:N
     Vob = -(Vin +  (f/(2*Z)));  % new outgoing velocity to bridge
     
     % attach mass spring to bow
-    u = Vob*1000;
+    
     
     % output of spring
-    massSpringOutput = x(1);
-
+    massSpringOutput = x(1)*50000;
+    
+    threshold = 0.5;
+    if massSpringOutput > threshold 
+        %massSpringOutput = 0.5; %(1/threshold * threshold) * ;
+        %Vob = Vob + massSpringOutput;
+        bodyImpulse = 1
+       % x(1) = -x(1);
+       % x(2) = -x(2);
+    else 
+        bodyImpulse = 0;
+    end
+    u = Vob;
     % update states
     x = Ad*x + Bd*(u + du);
     du = u;
     
-    nutDelay = [Von , nutDelay(1:nutLength-1)];
-    brigdeDelay = [Vob + massSpringOutput, brigdeDelay(1:brigdeLength-1)];
+    nutDelay = [Von + massSpringOutput*0.01, nutDelay(1:nutLength-1)];
+    brigdeDelay = [Vob + massSpringOutput*0.01, brigdeDelay(1:brigdeLength-1)];
     
-    output(i) = Vob * massSpringOutput;
+    
+    if bodyImpulse == 1
+        output(i) = Vob + 1;
+    else
+        output(i) = Vob;
+    end
     
     frictionOutput(i) = f;
     vOutput(i) = v;
 end
+outWithBody = conv(output, body);
+plot(outWithBody)
 
-plot(output)
+% figure
+% plot(vOutput)
 
-%figure
-%plot(vOutput)
-
-soundsc(output,Fs)
+soundsc(outWithBody,Fs)
 
