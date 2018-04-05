@@ -11,7 +11,7 @@ N = 4*Fs; % nr of samples
 body = body(:,1);
 
 % string and bow model
-freq = 220;
+freq = 110;
 stringLength = floor(Fs/freq);
 
 Pb = 0.1; % bowing point
@@ -41,9 +41,9 @@ vOutput = zeros(N,1);
 
 T = 1/Fs;
 
-b = 0.01;       % Resistance
+b = 7;       % Resistance
 k = 100000;  % spring stiffness
-m = 0.02;        % mass
+m = 0.2;        % mass
 
 % calculate k to find a precise mass spring frequency
 springFreq = freq; % could be dependent on the string frequency
@@ -77,7 +77,7 @@ Bd = H * B;
 % Impact
 
 fmax = 1;
-T = 0.004;
+T = Fs/freq * T;%0.0003;
 
 t=[0:1/Fs:T - 1/Fs];
 
@@ -86,9 +86,9 @@ doImpact = 0;
 impactIsDone = 1;
 impactLength = length(t);
 di = 1.2;
-for ind = 1:max(size(t))
+for ind = 1:impactLength
     F(ind) = fmax *(1 - cos ((2*pi*t(ind)/T)));
-    %F(ind) = tanh(F(ind)*di);
+   % F(ind) = tanh(F(ind)*di);
     
 end
 
@@ -174,29 +174,38 @@ for i = 1:N
 
     % attach mass spring to bow
     % output of spring
-    massSpringOutput(i) = x(2);
-    threshold = 0.5 ;
-    if (massSpringOutput(i) > threshold && doImpact == 0)
+    massSpringOutput(i) = x(1);
+    threshold = 0.41;%*10e-5 ;
+    if (abs(Vob) > threshold && x(1) > threshold * 10e-7 && doImpact == 0)
         doImpact = 1;
         impactIsDone = 0;
-        %x(1) = -x(1);
+       % x(1) = -x(1)*0.5;
         x(2) = -x(2);
-        massSpringOutput(i) = x(2);
+        %massSpringOutput(i) = x(1);
     end
 
     impact = 0;
     if doImpact == 1
-        impact = F(impactIndex);       
-        impactIndex = impactIndex + 1;
-        if impactIndex > impactLength
-            impactIndex = 1;
+%         impact = F(impactIndex);       
+%         impactIndex = impactIndex + 1;
+%         if impactIndex > impactLength/2
+%             impactIndex = 1;
+%             impactIsDone = 1;
+%             doImpact = 0;
+%         end
+        impact = 1;%F(impactIndex);       
+       % impactIndex = impactIndex + 1;
+       % if impactIndex > impactLength/2
+        %    impactIndex = 1;
             impactIsDone = 1;
             doImpact = 0;
-        end
+       % end
+        
     end
-     output(i) = Vob *impact ;
-     nutDelay = [Von + impact *0.1, nutDelay(1:nutLength-1)];
-     brigdeDelay = [Vob + impact *0.1, brigdeDelay(1:brigdeLength-1)];
+     impactOutput(i) = impact;
+     output(i) = Vob ;
+     nutDelay = [Von + impact*0.1, nutDelay(1:nutLength-1)];
+     brigdeDelay = [Vob + impact*0.1, brigdeDelay(1:brigdeLength-1)];
         
     % update spring states
     u = Vob;  
@@ -206,11 +215,16 @@ for i = 1:N
     frictionOutput(i) = f;
     vOutput(i) = v;
 end
+bodyImpact = conv(impactOutput, body);
 outWithBody = conv(output, body);
-plot(outWithBody)
+
+for i = 1:N
+    withImpact(i) = output(i) + 0.2*bodyImpact(i);
+end
+plot(withImpact)
 
 figure
 plot(massSpringOutput)
 
-soundsc(output,Fs)
+soundsc(withImpact,Fs)
 
