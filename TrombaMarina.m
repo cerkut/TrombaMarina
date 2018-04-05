@@ -41,7 +41,7 @@ vOutput = zeros(N,1);
 
 T = 1/Fs;
 
-b = 0.05;       % Resistance
+b = 0.01;       % Resistance
 k = 100000;  % spring stiffness
 m = 0.02;        % mass
 
@@ -77,7 +77,7 @@ Bd = H * B;
 % Impact
 
 fmax = 1;
-T = ((Fs/springFreq) * T)/2;
+T = 0.005;
 
 t=[0:1/Fs:T - 1/Fs];
 
@@ -88,7 +88,7 @@ impactLength = length(t);
 di = 1.2;
 for ind = 1:max(size(t))
     F(ind) = fmax *(1 - cos ((2*pi*t(ind)/T)));
-    F(ind) = tanh(F(ind)*di);
+    %F(ind) = tanh(F(ind)*di);
     
 end
 
@@ -171,24 +171,22 @@ for i = 1:N
     
     Von = -(LPVib + (f/(2*Z))); % new outgoing velocity to nut
     Vob = -(Vin +  (f/(2*Z)));  % new outgoing velocity to bridge
-    
-   
-    
+
     % attach mass spring to bow
     % output of spring
-    massSpringOutput(i) = x(1);
-    threshold = 0.00001 ;
+    massSpringOutput(i) = x(2);
+    threshold = 0.5 ;
     if (massSpringOutput(i) > threshold && doImpact == 0)
         doImpact = 1;
         impactIsDone = 0;
         %x(1) = -x(1);
         x(2) = -x(2);
+        massSpringOutput(i) = x(2);
     end
-   
-    % 
+
     impact = 0;
     if doImpact == 1
-        impact =  F(impactIndex);       
+        impact = F(impactIndex);       
         impactIndex = impactIndex + 1;
         if impactIndex > impactLength
             impactIndex = 1;
@@ -197,14 +195,14 @@ for i = 1:N
         end
     end
      output(i) = Vob + impact ;
-     nutDelay = [Von + impact*0.1 , nutDelay(1:nutLength-1)];
-     brigdeDelay = [Vob + impact*0.1, brigdeDelay(1:brigdeLength-1)];
+     nutDelay = [Von + impact *0.1, nutDelay(1:nutLength-1)];
+     brigdeDelay = [Vob + impact *0.1, brigdeDelay(1:brigdeLength-1)];
         
-    
-     u = Vib;
-    % update states
+    % update spring states
+    u = Vob;  
     x = Ad*x + Bd*(u + du);
     du = u;
+    
     frictionOutput(i) = f;
     vOutput(i) = v;
 end
@@ -214,5 +212,5 @@ plot(outWithBody)
 figure
 plot(massSpringOutput)
 
-soundsc(outWithBody,Fs)
+soundsc(output,Fs)
 
