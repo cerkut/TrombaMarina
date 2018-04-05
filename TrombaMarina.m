@@ -5,6 +5,8 @@ Fs = 44100;
 [body, fs] = audioread('aguitar.wav'); % random guitar body IR
 body = body(:,1);
 freq = 110;
+
+
 % mass spring
 
 T = 1/Fs;
@@ -14,7 +16,7 @@ k = 100000;  % spring stiffness
 m = 1;        % mass
 
 % calculate k to find a precise mass spring frequency
-springFreq = freq*2; % could be dependent on the string frequency
+springFreq = freq; % could be dependent on the string frequency
 k = (springFreq*(2*pi) * sqrt(m))^2;
 
 % frequency of spring
@@ -49,7 +51,7 @@ N = 4*Fs;
 stringLength = floor(Fs/freq);
 l = stringLength/2;
 Pb = 0.1; % bowing point
-Fb = 0.25;  % force (N)
+Fb = 0.5;  % force (N)
 Vb = 0.15;  % velocity (m/s)
 
 nutLength = floor(stringLength*(1-Pb));
@@ -75,6 +77,24 @@ stick = 0;
 output = zeros(N,1);
 frictionOutput = zeros(N,1);
 vOutput = zeros(N,1);
+
+% Impact
+
+fmax = 1;
+T = 0.0005;
+
+t=[0:1/fs:T];
+
+impactIndex = 1;
+doImpact = 0;
+impactIsDone = 1;
+impactLength = length(t);
+
+for ind = 1:max(size(t))
+    F(ind) = fmax *(1 - cos ((2*pi*t(ind)/T)));
+end
+
+
 
 for i = 1:N
     % make input stop to hear how that sounds
@@ -158,31 +178,44 @@ for i = 1:N
     
     
     % output of spring
-    massSpringOutput = x(1)*50000;
+    massSpringOutput = x(1)*500000;
     
     threshold = 0.5;
-    if massSpringOutput > threshold 
+    if (massSpringOutput > threshold && doImpact == 0)
         %massSpringOutput = 0.5; %(1/threshold * threshold) * ;
         %Vob = Vob + massSpringOutput;
-        bodyImpulse = 1
+        doImpact = 1;
+        impactIsDone = 0;
        % x(1) = -x(1);
-       % x(2) = -x(2);
-    else 
-        bodyImpulse = 0;
+        x(2) = -x(2);
+    elseif (impactIsDone == 1)
+        doImpact = 0;
     end
     u = Vob;
     % update states
     x = Ad*x + Bd*(u + du);
     du = u;
     
-    nutDelay = [Von + massSpringOutput*0.01, nutDelay(1:nutLength-1)];
-    brigdeDelay = [Vob + massSpringOutput*0.01, brigdeDelay(1:brigdeLength-1)];
+%     nutDelay = [Von + massSpringOutput*0.01, nutDelay(1:nutLength-1)];
+%     brigdeDelay = [Vob + massSpringOutput*0.01, brigdeDelay(1:brigdeLength-1)];
+%     
     
-    
-    if bodyImpulse == 1
-        output(i) = Vob + 1;
+    if doImpact == 1
+        impact =  F(impactIndex);
+        output(i) = Vob + impact ;
+        nutDelay = [Von + impact * 0.2, nutDelay(1:nutLength-1)];
+        brigdeDelay = [Vob + impact * 0.2, brigdeDelay(1:brigdeLength-1)];
+        impactIndex = impactIndex + 1;
+       
+        if impactIndex > impactLength
+            impactIndex = 1;
+            impactIsDone = 1;
+            doImpact = 0;
+        end
     else
         output(i) = Vob;
+        nutDelay = [Von , nutDelay(1:nutLength-1)];
+        brigdeDelay = [Vob , brigdeDelay(1:brigdeLength-1)];
     end
     
     frictionOutput(i) = f;
@@ -194,5 +227,5 @@ plot(outWithBody)
 % figure
 % plot(vOutput)
 
-soundsc(outWithBody,Fs)
+soundsc(output,Fs)
 
