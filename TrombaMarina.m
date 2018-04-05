@@ -1,17 +1,47 @@
 % Tromba Marina model
 % Stefania bow model together with a mass spring model
 clear; clc; close all;
+% setup
+
 Fs = 44100;
+N = 4*Fs; % nr of samples
+
+% body
 [body, fs] = audioread('aguitar.wav'); % random guitar body IR
 body = body(:,1);
-freq = 110;
+
+% string and bow model
+freq = 220;
+stringLength = floor(Fs/freq);
+
+Pb = 0.1; % bowing point
+Fb = 0.15;  % force (N)
+Vb = 0.2;  % velocity (m/s)
+
+nutLength = floor(stringLength*(1-Pb));
+brigdeLength = floor(stringLength*Pb);
+nutDelay = zeros(1,nutLength);
+brigdeDelay = zeros(1,brigdeLength);
+
+Z = 0.55;
+mus = 0.8; % static coeffient of friction
+zslope = 2*Z;
+stick = 0;
+
+Von = 0; Vob = 0;
+Vin = 0;Vib = 0;
+Vh = 0;dVib = 0;dVin = 0;
+
+output = zeros(N,1);
+frictionOutput = zeros(N,1);
+vOutput = zeros(N,1);
 
 
 % mass spring
 
 T = 1/Fs;
 
-b = 0.005;       % Resistance
+b = 0.05;       % Resistance
 k = 100000;  % spring stiffness
 m = 0.02;        % mass
 
@@ -44,40 +74,6 @@ H = inv(a*I - A);
 Ad = H * (a*I + A);
 Bd = H * B;
 
-% Bow model
-
-N = 4*Fs;
-
-stringLength = floor(Fs/freq);
-l = stringLength/2;
-Pb = 0.1; % bowing point
-Fb = 0.15;  % force (N)
-Vb = 0.2;  % velocity (m/s)
-
-nutLength = floor(stringLength*(1-Pb));
-brigdeLength = floor(stringLength*Pb);
-nutDelay = zeros(1,nutLength);
-brigdeDelay = zeros(1,brigdeLength);
-
-Z = 0.55;
-mus = 0.8; % static coeffient of friction
-zslope = 2*Z;
-
-Von = 0;
-Vob = 0;
-Vin = 0;
-Vib = 0;
-Vh = 0;
-
-%dVon = 0;
-dVib = 0;
-dVin = 0;
-stick = 0;
-
-output = zeros(N,1);
-frictionOutput = zeros(N,1);
-vOutput = zeros(N,1);
-
 % Impact
 
 fmax = 1;
@@ -94,12 +90,9 @@ for ind = 1:max(size(t))
     F(ind) = fmax *(1 - cos ((2*pi*t(ind)/T)));
     F(ind) = tanh(F(ind)*di);
     
-
 end
 
-%plot(F)
-
-
+% sample loop
 
 for i = 1:N
     % make input stop to hear how that sounds
@@ -179,41 +172,34 @@ for i = 1:N
     Von = -(LPVib + (f/(2*Z))); % new outgoing velocity to nut
     Vob = -(Vin +  (f/(2*Z)));  % new outgoing velocity to bridge
     
+   
+    
     % attach mass spring to bow
-    
-    
     % output of spring
     massSpringOutput(i) = x(1);
-    threshold = 100 ;
+    threshold = 0.00001 ;
     if (massSpringOutput(i) > threshold && doImpact == 0)
-        %massSpringOutput = 0.5; %(1/threshold * threshold) * ;
-        %Vob = Vob + massSpringOutput;
         doImpact = 1;
         impactIsDone = 0;
-        x(1) = -x(1);
+        %x(1) = -x(1);
         x(2) = -x(2);
-%     elseif (impactIsDone == 1)
-%         doImpact = 0;
     end
    
     % 
+    impact = 0;
     if doImpact == 1
-        impact =  F(impactIndex);
-        output(i) = Vob + impact ;
-        nutDelay = [Von + impact*0.1 , nutDelay(1:nutLength-1)];
-        brigdeDelay = [Vob + impact*0.1, brigdeDelay(1:brigdeLength-1)];
+        impact =  F(impactIndex);       
         impactIndex = impactIndex + 1;
-       
         if impactIndex > impactLength
             impactIndex = 1;
             impactIsDone = 1;
             doImpact = 0;
         end
-    else
-        output(i) = Vob;
-        nutDelay = [Von , nutDelay(1:nutLength-1)];
-        brigdeDelay = [Vob , brigdeDelay(1:brigdeLength-1)];
     end
+     output(i) = Vob + impact ;
+     nutDelay = [Von + impact*0.1 , nutDelay(1:nutLength-1)];
+     brigdeDelay = [Vob + impact*0.1, brigdeDelay(1:brigdeLength-1)];
+        
     
      u = Vib;
     % update states
