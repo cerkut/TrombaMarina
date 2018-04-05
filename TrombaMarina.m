@@ -77,7 +77,7 @@ Bd = H * B;
 % Impact
 
 fmax = 1;
-T = Fs/freq * T;%0.0003;
+T = Fs/freq * T / 8;%0.0003;
 
 t=[0:1/Fs:T - 1/Fs];
 
@@ -180,32 +180,30 @@ for i = 1:N
         doImpact = 1;
         impactIsDone = 0;
        % x(1) = -x(1)*0.5;
-        x(2) = -x(2);
+       % x(2) = -x(2);
         %massSpringOutput(i) = x(1);
     end
 
     impact = 0;
     if doImpact == 1
-%         impact = F(impactIndex);       
-%         impactIndex = impactIndex + 1;
-%         if impactIndex > impactLength/2
-%             impactIndex = 1;
-%             impactIsDone = 1;
-%             doImpact = 0;
-%         end
-        impact = 1;%F(impactIndex);       
-       % impactIndex = impactIndex + 1;
-       % if impactIndex > impactLength/2
-        %    impactIndex = 1;
+        impact = F(impactIndex);       
+        impactIndex = impactIndex + 1;
+        if impactIndex > impactLength/2
+            impactIndex = 1;
             impactIsDone = 1;
             doImpact = 0;
-       % end
+        end
+%         impact = 1;%F(impactIndex);       
+%        
+%             impactIsDone = 1;
+%             doImpact = 0;
+%    
         
     end
      impactOutput(i) = impact;
      output(i) = Vob ;
-     nutDelay = [Von + impact*0.1, nutDelay(1:nutLength-1)];
-     brigdeDelay = [Vob + impact*0.1, brigdeDelay(1:brigdeLength-1)];
+     nutDelay = [Von , nutDelay(1:nutLength-1)];
+     brigdeDelay = [Vob , brigdeDelay(1:brigdeLength-1)];
         
     % update spring states
     u = Vob;  
@@ -219,7 +217,7 @@ bodyImpact = conv(impactOutput, body);
 outWithBody = conv(output, body);
 
 for i = 1:N
-    withImpact(i) = output(i) + 0.2*bodyImpact(i);
+    withImpact(i) = output(i) + 0.1*bodyImpact(i);
 end
 plot(withImpact)
 
