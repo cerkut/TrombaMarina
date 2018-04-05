@@ -77,7 +77,7 @@ Bd = H * B;
 % Impact
 
 fmax = 1;
-T = 0.005;
+T = 0.004;
 
 t=[0:1/Fs:T - 1/Fs];
 
@@ -194,7 +194,7 @@ for i = 1:N
             doImpact = 0;
         end
     end
-     output(i) = Vob + impact ;
+     output(i) = Vob *impact ;
      nutDelay = [Von + impact *0.1, nutDelay(1:nutLength-1)];
      brigdeDelay = [Vob + impact *0.1, brigdeDelay(1:brigdeLength-1)];
         
