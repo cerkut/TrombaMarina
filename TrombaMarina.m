@@ -77,9 +77,9 @@ Bd = H * B;
 % Impact
 
 fmax = 1;
-T = Fs/freq * T / 8;%0.0003;
+impactTime = Fs/freq * T;%0.0003;
 
-t=[0:1/Fs:T - 1/Fs];
+t=[0:1/Fs:impactTime - 1/Fs];
 
 impactIndex = 1;
 doImpact = 0;
@@ -87,11 +87,13 @@ impactIsDone = 1;
 impactLength = length(t);
 di = 1.2;
 for ind = 1:impactLength
-    F(ind) = fmax *(1 - cos ((2*pi*t(ind)/T)));
+    %F(ind) = fmax *(1 - cos ((2*pi*t(ind)/T)));
    % F(ind) = tanh(F(ind)*di);
     
 end
-
+f1 = linspace(0,1, impactLength/2);
+f2 = linspace(1,0, impactLength/2);
+F = [f1, f2];
 % sample loop
 
 for i = 1:N
@@ -175,12 +177,12 @@ for i = 1:N
     % attach mass spring to bow
     % output of spring
     massSpringOutput(i) = x(1);
-    threshold = 0.41;%*10e-5 ;
+    threshold = 0.5;%*10e-5 ;
     if (abs(Vob) > threshold && x(1) > threshold * 10e-7 && doImpact == 0)
         doImpact = 1;
         impactIsDone = 0;
        % x(1) = -x(1)*0.5;
-       % x(2) = -x(2);
+        x(2) = -x(2);
         %massSpringOutput(i) = x(1);
     end
 
@@ -202,8 +204,8 @@ for i = 1:N
     end
      impactOutput(i) = impact;
      output(i) = Vob ;
-     nutDelay = [Von , nutDelay(1:nutLength-1)];
-     brigdeDelay = [Vob , brigdeDelay(1:brigdeLength-1)];
+     nutDelay = [Von + 0.1*impact, nutDelay(1:nutLength-1)];
+     brigdeDelay = [Vob + 0.1*impact, brigdeDelay(1:brigdeLength-1)];
         
     % update spring states
     u = Vob;  
@@ -217,12 +219,12 @@ bodyImpact = conv(impactOutput, body);
 outWithBody = conv(output, body);
 
 for i = 1:N
-    withImpact(i) = output(i) + 0.1*bodyImpact(i);
+    withImpact(i) = output(i) + 0.5*bodyImpact(i);
 end
 plot(withImpact)
 
-figure
-plot(massSpringOutput)
+%figure
+%plot(massSpringOutput)
 
 soundsc(withImpact,Fs)
 
